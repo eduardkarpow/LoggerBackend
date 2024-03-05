@@ -24,13 +24,15 @@ imageCounter = 0
 
 def add_record():
     global accTmp, gyroTmp, imagesTmp
-    if len(gyroTmp) and len(accTmp):
+    if len(gyroTmp) > 0 and len(accTmp) > 0:
         print(1)
-        acc.append(accTmp[0])
-        gyro.append(gyroTmp[0])
+        n = min(len(accTmp), len(gyroTmp))
+        for i in range(n):
+            acc.append(accTmp[i])
+            gyro.append(gyroTmp[i])
         #images.append(imagesTmp[-1])
-        accTmp = accTmp[1:]
-        gyroTmp = gyroTmp[1:]
+        accTmp = accTmp[n:]
+        gyroTmp = gyroTmp[n:]
         imagesTmp = []
         data = pd.DataFrame(data={"acc": acc, "gyro": gyro})
         data.to_csv("data.csv", index=False)
@@ -56,15 +58,15 @@ async def log_requests(request, call_next):
     return response
 '''
 class Acc(BaseModel):
-    ax: str
-    ay: str
-    az: str
+    ax: list
+    ay: list
+    az: list
 
 
 class Gyro(BaseModel):
-    bx: str
-    by: str
-    bz: str
+    bx: list
+    by: list
+    bz: list
 
 
 @app.get("/")
@@ -74,13 +76,17 @@ async def root():
 
 @app.post("/acc")
 async def add_acc_record(accel: Acc):
-    accTmp.append((accel.ax, accel.ay, accel.az))
+
+    for i in range(min(len(accel.az), len(accel.ay), len(accel.ax))):
+        accTmp.append((accel.ax[i], accel.ay[i], accel.az[i]))
+
     add_record()
 
 
 @app.post("/gyro")
 async def add_gyro_record(gyros: Gyro):
-    gyroTmp.append((gyros.bx, gyros.by, gyros.bz))
+    for i in range(min(len(gyros.bz), len(gyros.by), len(gyros.bx))):
+        gyroTmp.append((gyros.bx[i], gyros.by[i], gyros.bz[i]))
     add_record()
 
 
